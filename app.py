@@ -17,14 +17,17 @@ contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
 # outputsフォルダが存在しない場合は作成する
 os.makedirs('outputs', exist_ok=True)
 
+# 保存する画像のインデックスを初期化
+output_index = 0
+
 # 各輪郭を矩形として認識し、画像を分割して保存する
-for i, contour in enumerate(contours):
+for contour in contours:
     x, y, w, h = cv2.boundingRect(contour)
     
     # 矩形のサイズが10×90ピクセル以下の場合はスキップ
     if w <= 90 or h <= 10:
         continue
-
+    
     if w > 110 or h > 20:
         continue
     
@@ -47,6 +50,7 @@ for i, contour in enumerate(contours):
         continue
     
     # 円が検出された場合のみ保存する
-    cv2.imwrite(f'outputs/box_{i}.jpg', box_image)
+    cv2.imwrite(f'outputs/op{output_index:03}.jpg', box_image)
+    output_index += 1
 
 print("画像の分割が完了しました。")
