@@ -3,7 +3,7 @@ import numpy as np
 import os
 
 # 画像を読み込む
-image = cv2.imread('test.png')
+image = cv2.imread('masktest.png')
 
 # グレースケールに変換する
 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
