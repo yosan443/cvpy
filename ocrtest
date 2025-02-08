@@ -1,0 +1,45 @@
+import cv2
+import numpy as np
+
+# 画像を読み込みます
+image = cv2.imread('test.png')
+
+# グレースケール画像に変換し、ぼかしをかけます
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+
+# 画像の二値化を行います
+_, thresholded = cv2.threshold(blurred, 60, 255, cv2.THRESH_BINARY)
+
+# 輪郭を検出します
+contours, _ = cv2.findContours(thresholded, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+# 輪郭の密集度を計算します。ここでは、輪郭の重心の距離を基に判定します
+def calculate_centroid(contour):
+    M = cv2.moments(contour)
+    if M['m00'] == 0:
+        return None
+    cx = int(M['m10'] / M['m00'])
+    cy = int(M['m01'] / M['m00'])
+    return (cx, cy)
+
+centroids = [calculate_centroid(c) for c in contours if calculate_centroid(c) is not None]
+
+dense_region_contours = []
+distance_threshold = 50  # 距離のしきい値を設定
+
+for i, c1 in enumerate(centroids):
+    for c2 in centroids[i+1:]:
+        if np.linalg.norm(np.array(c1) - np.array(c2)) < distance_threshold:
+            dense_region_contours.append(contours[i])
+            break
+
+# 密集している領域を切り取り、画像として保存します
+for idx, contour in enumerate(dense_region_contours):
+    x, y, w, h = cv2.boundingRect(contour)
+    cropped = image[y:y+h, x:x+w]
+    cv2.imwrite(f'dense_region_{idx}.jpg', cropped)
+    cv2.imshow(f'Cropped_{idx}', cropped)
+
+cv2.waitKey(0)
+cv2.destroyAllWindows()
